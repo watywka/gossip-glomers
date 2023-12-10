@@ -22,7 +22,7 @@ test {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'com.watywka.Main'
+        attributes 'Main-Class': 'com.watywka.Node'
     }
 
     duplicatesStrategy = DuplicatesStrategy.INCLUDE

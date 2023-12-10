@@ -24,6 +24,7 @@ public class Node {
     private List<String> nodes;
     private final List<Integer> broadcastValues = new ArrayList<>();
     private int offset;
+    private List<String> nodesTopology;
 
     public Node(InputStream in, PrintStream output, PrintStream debug) {
         this.scanner = new Scanner(in);
@@ -46,25 +47,42 @@ public class Node {
             Message<Body> message = objectMapper.readValue(content, new TypeReference<>() {
             });
             Ok body = switch (message.getBody()) {
-                case Echo echo ->  new EchoOk(counter++, message.getBody().getMessageId(), echo.getEcho());
-                case Generate ignored -> new GenerateOk(counter++, message.getBody().getMessageId(), offset + nodes.size() * generateCounter++);
+                case Echo echo -> new EchoOk(counter++, message.getBody().getMessageId(), echo.getEcho());
+                case Generate ignored ->
+                        new GenerateOk(counter++, message.getBody().getMessageId(), offset + nodes.size() * generateCounter++);
                 case Broadcast broadcast -> {
                     broadcastValues.add(broadcast.getMessage());
+                    for (String nextNode : nodesTopology) {
+                        if (!nextNode.equals(message.getSourceNode())) {
+                            output.println(objectMapper.writeValueAsString(new Message<>(
+                                    node,
+                                    nextNode,
+                                    broadcast
+                            )));
+                        }
+                    }
                     yield new BroadcastOk(counter++, message.getBody().getMessageId());
                 }
                 case Read ignored -> new ReadOk(counter++, message.getBody().getMessageId(), broadcastValues);
-                case Topology ignored -> new TopologyOk(counter++, message.getBody().getMessageId());
+                case Topology topology -> {
+                    nodesTopology = topology.getTopology().get(node);
+                    yield new TopologyOk(counter++, message.getBody().getMessageId());
+                }
+                case Ok ignored -> null;
                 case null, default -> throw new RuntimeException();
             };
-            Message<Ok> value = new Message<>(message.getDestinationNode(), message.getSourceNode(), body);
-            output.println(objectMapper.writeValueAsString(value));
+            if (body != null) {
+                Message<Ok> value = new Message<>(message.getDestinationNode(), message.getSourceNode(), body);
+                output.println(objectMapper.writeValueAsString(value));
+            }
         }
     }
 
     private void init() throws JsonProcessingException {
         String content = scanner.nextLine();
         debug.println(content);
-        Message<Init> init = objectMapper.readValue(content, new TypeReference<>() {});
+        Message<Init> init = objectMapper.readValue(content, new TypeReference<>() {
+        });
         node = init.getBody().getNodeId();
         nodes = init.getBody().getNodeIds();
         offset = nodes.indexOf(node);
