@@ -14,6 +14,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         int counter = 0;
+        int generateCounter = 0;
         Scanner scanner = new Scanner(System.in);
         String content = scanner.nextLine();
         System.err.println(content);
@@ -21,6 +22,7 @@ public class Main {
         });
         String node = init.getBody().getNodeId();
         List<String> nodes = init.getBody().getNodeIds();
+        int offset = nodes.indexOf(node);
         InitOk initOk = new InitOk(counter++, init.getBody().getMessageId());
         Message<InitOk> initOkMessage = new Message<>(node, init.getSourceNode(), initOk);
         String output = OBJECT_MAPPER.writeValueAsString(initOkMessage);
@@ -31,11 +33,16 @@ public class Main {
             System.err.println(content);
             Message<Body> message = OBJECT_MAPPER.readValue(content, new TypeReference<>() {
             });
+            Ok body;
             if (message.getBody() instanceof Echo echo) {
-                EchoOk body = new EchoOk(counter++, message.getBody().getMessageId(), echo.getEcho());
-                Message<EchoOk> value = new Message<>(message.getDestinationNode(), message.getSourceNode(), body);
-                output = OBJECT_MAPPER.writeValueAsString(value);
+                body = new EchoOk(counter++, message.getBody().getMessageId(), echo.getEcho());
+            } else if (message.getBody() instanceof Generate) {
+                body = new GenerateOk(counter++, message.getBody().getMessageId(), offset + nodes.size() * generateCounter++);
+            } else {
+                return;
             }
+            Message<Ok> value = new Message<>(message.getDestinationNode(), message.getSourceNode(), body);
+            output = OBJECT_MAPPER.writeValueAsString(value);
             System.out.println(output);
         }
     }

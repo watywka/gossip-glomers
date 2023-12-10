@@ -9,7 +9,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = Init.class, name = "init"),
         @JsonSubTypes.Type(value = InitOk.class, name = "init_ok"),
         @JsonSubTypes.Type(value = Echo.class, name = "echo"),
-        @JsonSubTypes.Type(value = EchoOk.class, name = "echo_ok")
+        @JsonSubTypes.Type(value = EchoOk.class, name = "echo_ok"),
+        @JsonSubTypes.Type(value = Generate.class, name = "generate"),
+        @JsonSubTypes.Type(value = GenerateOk.class, name = "generate_ok")
 })
 public abstract class Body {
     @JsonProperty("msg_id")
