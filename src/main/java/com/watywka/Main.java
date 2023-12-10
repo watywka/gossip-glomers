@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.watywka.model.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -15,6 +16,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         int counter = 0;
         int generateCounter = 0;
+        List<Integer> broadcastValues = new ArrayList<>();
         Scanner scanner = new Scanner(System.in);
         String content = scanner.nextLine();
         System.err.println(content);
@@ -38,6 +40,13 @@ public class Main {
                 body = new EchoOk(counter++, message.getBody().getMessageId(), echo.getEcho());
             } else if (message.getBody() instanceof Generate) {
                 body = new GenerateOk(counter++, message.getBody().getMessageId(), offset + nodes.size() * generateCounter++);
+            } else if (message.getBody() instanceof Broadcast broadcast) {
+                broadcastValues.add(broadcast.getMessage());
+                body = new BroadcastOk(counter++, message.getBody().getMessageId());
+            } else if (message.getBody() instanceof Read) {
+                body = new ReadOk(counter++, message.getBody().getMessageId(), broadcastValues);
+            } else if (message.getBody() instanceof Topology topology) {
+                body = new TopologyOk(counter++, message.getBody().getMessageId());
             } else {
                 return;
             }
