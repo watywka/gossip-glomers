@@ -54,11 +54,7 @@ public class Node {
                     broadcastValues.add(broadcast.getMessage());
                     for (String nextNode : nodesTopology) {
                         if (!nextNode.equals(message.getSourceNode())) {
-                            output.println(objectMapper.writeValueAsString(new Message<>(
-                                    node,
-                                    nextNode,
-                                    broadcast
-                            )));
+                            sendMessage(broadcast, nextNode);
                         }
                     }
                     yield new BroadcastOk(counter++, message.getBody().getMessageId());
@@ -72,10 +68,17 @@ public class Node {
                 case null, default -> throw new RuntimeException();
             };
             if (body != null) {
-                Message<Ok> value = new Message<>(message.getDestinationNode(), message.getSourceNode(), body);
-                output.println(objectMapper.writeValueAsString(value));
+                sendMessage(body, message.getSourceNode());
             }
         }
+    }
+
+    private <T extends Body> void sendMessage(T body, String destination) throws JsonProcessingException {
+        output.println(objectMapper.writeValueAsString(new Message<>(
+                node,
+                destination,
+                body
+        )));
     }
 
     private void init() throws JsonProcessingException {
@@ -87,8 +90,7 @@ public class Node {
         nodes = init.getBody().getNodeIds();
         offset = nodes.indexOf(node);
         InitOk initOk = new InitOk(counter++, init.getBody().getMessageId());
-        Message<InitOk> initOkMessage = new Message<>(node, init.getSourceNode(), initOk);
-        output.println(objectMapper.writeValueAsString(initOkMessage));
+        sendMessage(initOk, init.getSourceNode());
     }
 }
 
