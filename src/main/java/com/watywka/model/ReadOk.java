@@ -1,16 +1,16 @@
 package com.watywka.model;
 
-import java.util.List;
+import java.util.Set;
 
 public class ReadOk extends Ok {
-    private final List<Integer> messages;
+    private final Set<Integer> messages;
 
-    public ReadOk(int messageId, int inReplyTo, List<Integer> messages) {
+    public ReadOk(int messageId, int inReplyTo, Set<Integer> messages) {
         super(messageId, inReplyTo);
         this.messages = messages;
     }
 
-    public List<Integer> getMessages() {
+    public Set<Integer> getMessages() {
         return messages;
     }
 }
