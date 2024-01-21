@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class Node {
@@ -22,7 +23,7 @@ public class Node {
     private int generateCounter = 0;
     private String node;
     private List<String> nodes;
-    private final Set<Integer> broadcastValues = new HashSet<>();
+    private final Set<Integer> broadcastValues = new CopyOnWriteArraySet<>();
     private final BlockingQueue<Message<Broadcast>> scheduledBroadcastMessages = new LinkedBlockingQueue<>();
     private int offset;
     private List<String> neighbourNodes;
